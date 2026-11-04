@@ -1,4 +1,4 @@
-"""Lecture des CSV « KPIs EMM » et extraction des séries à tracer.
+"""Lecture des CSV « KPIs EMM » et extraction des séries à tracer (utilisé par graphiques.py).
 
 Chaque CSV a deux colonnes (intitulé, valeur). Les intitulés reconnus sont ceux de INDICATEURS,
 où ( ) = partie facultative et [ ] = partie obligatoire :

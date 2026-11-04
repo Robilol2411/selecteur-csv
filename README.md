@@ -1,12 +1,12 @@
 # selecteur-csv
 
-Petite appli Tkinter pour choisir jusqu'à 12 CSV « KPIs EMM », cocher des options et ouvrir des pages de KPI (Altair).
+Petite appli Tkinter pour choisir jusqu'à 12 CSV « KPIs EMM », cocher des options et ouvrir des graphiques Altair.
 
 | Fichier | Rôle |
 |---|---|
-| `main.py` | La fenêtre : 12 cases, options Statut / Programme / Messages, un bouton par page. |
-| `graphiques.py` | Construit la page HTML demandée (tuiles + graphiques) et l'ouvre dans le navigateur. |
-| `kpi.py` | Lecture des CSV, reconnaissance des intitulés, extraction des séries. **Les réglages sont ici.** |
+| `main.py` | La fenêtre : 12 cases, options Statut / Programme / Messages, un bouton par graphique. |
+| `graphiques.py` | Dessine le graphique demandé (barres groupées, une barre par mois) et l'ouvre dans le navigateur. |
+| `donnees.py` | Lecture des CSV, reconnaissance des intitulés, extraction des séries. **Les réglages sont ici.** |
 | `exemples/` | CSV fictifs pour tester. |
 
 Prérequis : `pip install pandas altair` — Lancer : `python main.py`
@@ -22,15 +22,15 @@ Intitulés reconnus (`( )` facultatif, `[ ]` obligatoire) :
 - Nombre d'inscrits au chatbot EMM
 - Nombre d'utilisateurs du chatbot EMM
 
-Majuscules, accents et type d'apostrophe sont ignorés. Les intitulés non reconnus sont listés en bas de chaque page.
+Majuscules, accents et type d'apostrophe sont ignorés. Les intitulés non reconnus sont affichés dans la console.
 
-## Pages
-- **Vue d'ensemble** : requêtes sur la période, inscrits, utilisateurs, taux d'utilisation, requêtes par utilisateur (sans options).
-- **Utilisateurs**, **Requêtes**, **Requêtes / utilisateur** : options Statut et Programme.
+## Graphiques
+- **Utilisateurs**, **Requêtes** : options Statut et Programme.
 - **Nb de messages** : options Statut, Programme et Messages.
+- **Chiffres globaux** : requêtes sur la période, inscrits, utilisateurs du chatbot (sans options).
 
-Options : coché = une série à part ; rien de coché dans une ligne = tous confondus (ligne « totale » du CSV, ou somme du détail si elle n'existe pas — marquée « somme »).
+Options : coché = une série à part ; rien de coché dans une ligne = tous confondus (ligne « totale » du CSV, ou somme du détail si elle n'existe pas — indiquée « somme du détail » dans l'infobulle).
 
 ## À adapter
-Dans `kpi.py`, `STATUTS`, `PROGRAMMES`, `NOMBRES` : à gauche le nom affiché, à droite les écritures possibles dans les CSV.
+Dans `donnees.py`, `STATUTS`, `PROGRAMMES`, `NOMBRES` : à gauche le nom affiché, à droite les écritures possibles dans les CSV.
 Dans `graphiques.py`, `FICHIERS` (fichiers par défaut).

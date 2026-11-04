@@ -1,9 +1,9 @@
-"""Sélecteur CSV : choisir jusqu'à 12 fichiers « KPIs EMM », cocher des options, ouvrir une page de KPI.
+"""Sélecteur CSV : choisir jusqu'à 12 fichiers « KPIs EMM », cocher des options, ouvrir un graphique.
 
 Fenêtre Tkinter avec :
   - une grille de 12 cases (clic gauche = parcourir, clic droit = vider) ;
   - trois lignes d'options à cocher : statut, programme, nombre de messages ;
-  - un bouton par page de KPI (voir graphiques.PAGES).
+  - un bouton par graphique (voir graphiques.TITRES).
 
 Seuls les fichiers nommés CS-IN_KPIs_EMM_<Mois>_<Année>.csv sont acceptés
 (ex. CS-IN_KPIs_EMM_Septembre_2026.csv). Ils sont toujours rangés par date :
@@ -12,7 +12,7 @@ la case 1 contient le mois le plus ancien.
 Options : une valeur cochée = une série à part ; rien de coché dans une ligne = tous confondus.
 
 Chaque bouton lance graphiques.py dans un processus à part, sous la forme :
-    python graphiques.py --page requetes --statuts internes --programmes A B --nombres -- a.csv b.csv
+    python graphiques.py --graphique requetes --statuts internes --programmes A B --nombres -- a.csv b.csv
 
 Usage :
     python main.py               # fenêtre vide
@@ -24,27 +24,26 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, ttk
 
-import kpi
+import donnees as d
 
 DOSSIER = Path(__file__).parent
 
-# Script qui dessine les pages : adapte le chemin si tu le déplaces.
+# Script qui dessine les graphiques : adapte le chemin si tu le déplaces.
 SCRIPT = DOSSIER / "graphiques.py"
 
-# Boutons : texte du bouton -> (nom de la page dans graphiques.py, lignes d'options utilisées).
+# Boutons : texte du bouton -> (nom du graphique dans graphiques.py, lignes d'options utilisées).
 BOUTONS = {
-    "Vue d'ensemble": ("ensemble", ""),
     "Utilisateurs": ("utilisateurs", "statut, programme"),
     "Requêtes": ("requetes", "statut, programme"),
-    "Requêtes / utilisateur": ("ratio", "statut, programme"),
     "Nb de messages": ("messages", "statut, programme, messages"),
+    "Chiffres globaux": ("globaux", ""),
 }
 
 # Lignes d'options : (titre affiché, argument passé à graphiques.py, valeurs à cocher).
 OPTIONS = [
-    ("Statut", "statuts", list(kpi.STATUTS)),
-    ("Programme", "programmes", list(kpi.PROGRAMMES)),
-    ("Messages", "nombres", list(kpi.NOMBRES)),
+    ("Statut", "statuts", list(d.STATUTS)),
+    ("Programme", "programmes", list(d.PROGRAMMES)),
+    ("Messages", "nombres", list(d.NOMBRES)),
 ]
 
 NB_CASES = 12
@@ -52,7 +51,7 @@ COLONNES = 4
 
 
 class Selecteur(tk.Tk):
-    """Fenêtre principale : grille de fichiers, options à cocher et boutons de pages."""
+    """Fenêtre principale : grille de fichiers, options à cocher et boutons de graphiques."""
 
     def __init__(self):
         """Construit la fenêtre et pré-remplit la grille avec les CSV passés en argument."""
@@ -111,15 +110,15 @@ class Selecteur(tk.Tk):
                  fg="#777", bg="white").pack(anchor="w", padx=20, pady=(0, 6))
 
     def creer_pied(self):
-        """Crée la zone de message et la rangée de boutons (une page par bouton + Tout effacer)."""
+        """Crée la zone de message et la rangée de boutons (un graphique par bouton + Tout effacer)."""
         self.message = tk.Label(self, fg="#777", bg="white", anchor="w", justify="left", wraplength=860)
         self.message.pack(fill="x", padx=20)
         pied = tk.Frame(self, bg="white")
         pied.pack(fill="x", padx=20, pady=(4, 16))
-        for texte, (page, utilise) in BOUTONS.items():
-            bouton = ttk.Button(pied, text=texte, command=lambda p=page, t=texte: self.lancer(p, t))
+        for texte, (graphique, utilise) in BOUTONS.items():
+            bouton = ttk.Button(pied, text=texte, command=lambda g=graphique, t=texte: self.lancer(g, t))
             bouton.pack(side="left", padx=(0, 8))
-            aide = f"{texte} : options {utilise}" if utilise else f"{texte} : chiffres globaux, sans options"
+            aide = f"{texte} : options {utilise}" if utilise else f"{texte} : requêtes sur la période, inscrits, utilisateurs (sans options)"
             bouton.bind("<Enter>", lambda e, a=aide: self.message.config(text=a))
             bouton.bind("<Leave>", lambda e: self.rafraichir())
         ttk.Button(pied, text="Tout effacer", command=self.tout_effacer).pack(side="right")
@@ -130,7 +129,7 @@ class Selecteur(tk.Tk):
         """Met à jour le texte et la couleur des cases, puis le compteur de fichiers."""
         for i, (chemin, case) in enumerate(zip(self.fichiers, self.cases)):
             if chemin:
-                case.config(text=f"{i + 1}. {kpi.libelle_mois(chemin)}\n{Path(chemin).name}", fg="#222",
+                case.config(text=f"{i + 1}. {d.libelle_mois(chemin)}\n{Path(chemin).name}", fg="#222",
                             bg="white", highlightbackground="#2b6cb0")
             else:
                 case.config(text=f"{i + 1}. vide", fg="#999", bg="#f6f6f6", highlightbackground="#d0d0d0")
@@ -138,7 +137,7 @@ class Selecteur(tk.Tk):
 
     def trier(self):
         """Range les fichiers par date (le plus ancien en case 1) et regroupe les cases vides à la fin."""
-        presents = sorted((f for f in self.fichiers if f), key=kpi.date_du_fichier)
+        presents = sorted((f for f in self.fichiers if f), key=d.date_du_fichier)
         self.fichiers = presents + [None] * (NB_CASES - len(presents))
         self.rafraichir()
 
@@ -152,11 +151,11 @@ class Selecteur(tk.Tk):
             self.fichiers[remplace] = None
         refuses = []
         for chemin in chemins:
-            date = kpi.date_du_fichier(chemin)
+            date = d.date_du_fichier(chemin)
             if date is None:
                 refuses.append(f"{Path(chemin).name} (nom invalide)")
-            elif any(f and kpi.date_du_fichier(f) == date for f in self.fichiers):
-                refuses.append(f"{Path(chemin).name} ({kpi.libelle_mois(chemin)} déjà présent)")
+            elif any(f and d.date_du_fichier(f) == date for f in self.fichiers):
+                refuses.append(f"{Path(chemin).name} ({d.libelle_mois(chemin)} déjà présent)")
             elif None not in self.fichiers:
                 refuses.append(f"{Path(chemin).name} (plus de case libre)")
             else:
@@ -182,19 +181,19 @@ class Selecteur(tk.Tk):
         self.fichiers = [None] * NB_CASES
         self.rafraichir()
 
-    # --- lancement des pages ----------------------------------------------------------
+    # --- lancement des graphiques ----------------------------------------------------------
 
     def options_cochees(self):
         """Renvoie {argument: [valeurs cochées]} pour chaque ligne d'options."""
         return {arg: [v for v, var in vars_.items() if var.get()] for arg, vars_ in self.coches.items()}
 
-    def lancer(self, page, texte):
-        """Ouvre la page `page` avec les options cochées et les fichiers choisis (dans l'ordre des cases).
+    def lancer(self, graphique, texte):
+        """Ouvre le graphique `graphique` avec les options cochées et les fichiers choisis (dans l'ordre des cases).
 
-        Une ligne sans rien de coché est transmise vide : la page prend « tous confondus ».
+        Une ligne sans rien de coché est transmise vide : le graphique prend « tous confondus ».
         Sans fichier choisi, graphiques.py utilise sa propre liste de fichiers par défaut.
         """
-        commande = [sys.executable, str(SCRIPT), "--page", page]
+        commande = [sys.executable, str(SCRIPT), "--graphique", graphique]
         for arg, valeurs in self.options_cochees().items():
             commande += [f"--{arg}", *valeurs]
         chemins = [f for f in self.fichiers if f]
