@@ -1,25 +1,55 @@
 intitule;valeur
-Nombre d'utilisateur(s) internes A avec 0-10 messages;97
-Nombre d'utilisateur(s) internes A avec 11-25 messages;115
-Nombre d'utilisateur(s) internes A avec 26+ messages;42
-Nombre d'utilisateur(s) internes B avec 0-10 messages;20
-Nombre d'utilisateur(s) internes B avec 11-25 messages;100
-Nombre d'utilisateur(s) internes B avec 26+ messages;47
-Nombre d'utilisateur(s) internes C avec 0-10 messages;119
-Nombre d'utilisateur(s) internes C avec 11-25 messages;97
-Nombre d'utilisateur(s) internes C avec 26+ messages;96
-Nombre d'utilisateur(s) internes D avec 0-10 messages;69
-Nombre d'utilisateur(s) internes D avec 11-25 messages;59
-Nombre d'utilisateur(s) internes D avec 26+ messages;69
-Nombre d'utilisateur(s) partenaires A avec 0-10 messages;111
-Nombre d'utilisateur(s) partenaires A avec 11-25 messages;90
-Nombre d'utilisateur(s) partenaires A avec 26+ messages;29
-Nombre d'utilisateur(s) partenaires B avec 0-10 messages;43
-Nombre d'utilisateur(s) partenaires B avec 11-25 messages;41
-Nombre d'utilisateur(s) partenaires B avec 26+ messages;80
-Nombre d'utilisateur(s) partenaires C avec 0-10 messages;117
-Nombre d'utilisateur(s) partenaires C avec 11-25 messages;68
-Nombre d'utilisateur(s) partenaires C avec 26+ messages;113
-Nombre d'utilisateur(s) partenaires D avec 0-10 messages;69
-Nombre d'utilisateur(s) partenaires D avec 11-25 messages;55
-Nombre d'utilisateur(s) partenaires D avec 26+ messages;80
+Nombre d'utilisateur(s) internes A avec 0-10 messages;60
+Nombre d'utilisateur(s) internes A avec 11-25 messages;33
+Nombre d'utilisateur(s) internes A avec 26+ messages;53
+Nombre d'utilisateur(s) internes B avec 0-10 messages;44
+Nombre d'utilisateur(s) internes B avec 11-25 messages;52
+Nombre d'utilisateur(s) internes B avec 26+ messages;69
+Nombre d'utilisateur(s) internes C avec 0-10 messages;42
+Nombre d'utilisateur(s) internes C avec 11-25 messages;11
+Nombre d'utilisateur(s) internes C avec 26+ messages;71
+Nombre d'utilisateur(s) internes D avec 0-10 messages;12
+Nombre d'utilisateur(s) internes D avec 11-25 messages;27
+Nombre d'utilisateur(s) internes D avec 26+ messages;43
+Nombre d'utilisateur(s) partenaires A avec 0-10 messages;60
+Nombre d'utilisateur(s) partenaires A avec 11-25 messages;58
+Nombre d'utilisateur(s) partenaires A avec 26+ messages;11
+Nombre d'utilisateur(s) partenaires B avec 0-10 messages;9
+Nombre d'utilisateur(s) partenaires B avec 11-25 messages;63
+Nombre d'utilisateur(s) partenaires B avec 26+ messages;60
+Nombre d'utilisateur(s) partenaires C avec 0-10 messages;29
+Nombre d'utilisateur(s) partenaires C avec 11-25 messages;57
+Nombre d'utilisateur(s) partenaires C avec 26+ messages;50
+Nombre d'utilisateur(s) partenaires D avec 0-10 messages;59
+Nombre d'utilisateur(s) partenaires D avec 11-25 messages;70
+Nombre d'utilisateur(s) partenaires D avec 26+ messages;40
+Nombre d'utilisateur(s) avec 0-10 messages;315
+Nombre d'utilisateur(s) avec 11-25 messages;371
+Nombre d'utilisateur(s) avec 26+ messages;397
+Nombre d’utilisateurs internes A;146
+Nombre d’utilisateurs internes B;165
+Nombre d’utilisateurs internes C;124
+Nombre d’utilisateurs internes D;82
+Nombre d’utilisateurs partenaires A;129
+Nombre d’utilisateurs partenaires B;132
+Nombre d’utilisateurs partenaires C;136
+Nombre d’utilisateurs partenaires D;169
+Nombre d'utilisateurs A;275
+Nombre d'utilisateurs B;297
+Nombre d'utilisateurs C;260
+Nombre d'utilisateurs D;251
+Nombre de requêtes utilisateurs internes A;687
+Nombre de requêtes utilisateurs internes B;876
+Nombre de requêtes utilisateurs internes C;869
+Nombre de requêtes utilisateurs internes D;257
+Nombre de requêtes utilisateurs partenaires A;744
+Nombre de requêtes utilisateurs partenaires B;529
+Nombre de requêtes utilisateurs partenaires C;503
+Nombre de requêtes utilisateurs partenaires D;566
+Nombre de requêtes utilisateurs internes;2689
+Nombre de requêtes utilisateurs partenaires;2342
+Nombre de requêtes utilisateurs;5031
+Nombre total de requêtes sur la période;5031
+Nombre d'inscrits au chatbot EMM;1732
+Nombre d'utilisateurs du chatbot EMM;1083
+Temps de réponse moyen;3.2
