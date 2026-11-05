@@ -1,17 +1,21 @@
-"""Sélecteur CSV : choisir jusqu'à 12 fichiers « KPIs EMM », cocher des options, ouvrir un graphique.
+"""Sélecteur CSV : choisir jusqu'à 12 fichiers « KPIs EMM », cocher des options, lancer des graphiques.
 
-Fenêtre Tkinter avec :
-  - une grille de 12 cases (clic gauche = parcourir, clic droit = vider) ;
-  - trois lignes d'options à cocher : statut, programme, nombre de messages ;
-  - un bouton par graphique (voir graphiques.TITRES).
+Fenêtre Tkinter, de haut en bas :
+  1. les graphiques à lancer (cases à cocher, plusieurs possibles) ;
+  2. la grille de 12 fichiers (clic gauche = parcourir, clic droit = vider),
+     avec dessous le rappel « * = obligatoire » et le bouton « Tout effacer » ;
+  3. les options : Messages, Statut, Programme. Une * apparaît à côté d'une option
+     quand un graphique coché l'exige (partie [ ] de son intitulé) ;
+  4. le bouton « Lancer », qui ouvre chaque graphique coché.
 
 Seuls les fichiers nommés CS-IN_KPIs_EMM_<Mois>_<Année>.csv sont acceptés
 (ex. CS-IN_KPIs_EMM_Septembre_2026.csv). Ils sont toujours rangés par date :
 la case 1 contient le mois le plus ancien.
 
-Options : une valeur cochée = une série à part ; rien de coché dans une ligne = tous confondus.
+Options : une valeur cochée = une série à part ; rien de coché dans une ligne = tous confondus
+(interdit pour une option marquée *).
 
-Chaque bouton lance graphiques.py dans un processus à part, sous la forme :
+Chaque graphique est lancé dans un processus à part, sous la forme :
     python graphiques.py --graphique requetes --statuts internes --programmes A B --nombres -- a.csv b.csv
 
 Usage :
@@ -31,55 +35,78 @@ DOSSIER = Path(__file__).parent
 # Script qui dessine les graphiques : adapte le chemin si tu le déplaces.
 SCRIPT = DOSSIER / "graphiques.py"
 
-# Boutons : texte du bouton -> (nom du graphique dans graphiques.py, lignes d'options utilisées).
-BOUTONS = {
-    "Utilisateurs": ("utilisateurs", "statut, programme"),
-    "Requêtes": ("requetes", "statut, programme"),
-    "Nb de messages": ("messages", "statut, programme, messages"),
-    "Chiffres globaux": ("globaux", ""),
+# Graphiques proposés en haut : texte affiché -> nom du graphique dans graphiques.py.
+GRAPHIQUES = {
+    "Nombre de messages": "messages",
+    "Utilisateurs": "utilisateurs",
+    "Requêtes": "requetes",
+    "Chiffres globaux": "globaux",
 }
 
-# Lignes d'options : (titre affiché, argument passé à graphiques.py, valeurs à cocher).
+# Options : (titre affiché, argument passé à graphiques.py, dimension dans donnees.py, valeurs).
 OPTIONS = [
-    ("Statut", "statuts", list(d.STATUTS)),
-    ("Programme", "programmes", list(d.PROGRAMMES)),
-    ("Messages", "nombres", list(d.NOMBRES)),
+    ("Messages", "nombres", "nombre", list(d.NOMBRES)),
+    ("Statut", "statuts", "statut", list(d.STATUTS)),
+    ("Programme", "programmes", "programme", list(d.PROGRAMMES)),
 ]
 
 NB_CASES = 12
 COLONNES = 4
+GRIS = "#777"
+
+
+def dimensions_obligatoires(graphique):
+    """Dimensions [ ] obligatoires pour un graphique (aucune pour « globaux »)."""
+    return [] if graphique == "globaux" else d.obligatoires(graphique)
 
 
 class Selecteur(tk.Tk):
-    """Fenêtre principale : grille de fichiers, options à cocher et boutons de graphiques."""
+    """Fenêtre principale : graphiques à lancer, grille de fichiers, options et bouton Lancer."""
 
     def __init__(self):
-        """Construit la fenêtre et pré-remplit la grille avec les CSV passés en argument."""
+        """Construit la fenêtre de haut en bas et pré-remplit la grille avec les CSV passés en argument."""
         super().__init__()
         self.title("Sélecteur CSV")
         self.configure(bg="white")
-        self.geometry("900x660")
+        self.geometry("900x700")
         self.fichiers = [None] * NB_CASES
-        self.coches = {}  # argument -> {valeur: BooleanVar}
+        self.choix_graphiques = {}  # graphique -> BooleanVar
+        self.coches = {}            # argument -> {valeur: BooleanVar}
+        self.titres_options = {}    # dimension -> Label du titre (pour l'étoile)
 
         tk.Label(self, text="Sélecteur CSV", font=("Segoe UI", 16, "bold"),
                  bg="white").pack(anchor="w", padx=20, pady=(16, 0))
-        tk.Label(self, text="Clic sur une case pour parcourir, clic droit pour vider. "
-                            "Fichiers : CS-IN_KPIs_EMM_<Mois>_<Année>.csv, rangés du plus ancien au plus récent.",
-                 fg="#777", bg="white").pack(anchor="w", padx=20)
 
+        self.creer_graphiques()
         self.creer_grille()
+        self.creer_sous_grille()
         self.creer_options()
         self.creer_pied()
 
+        self.maj_etoiles()
         self.ajouter(sys.argv[1:])
 
     # --- construction de l'interface -------------------------------------------------
 
+    def creer_graphiques(self):
+        """Ligne du haut : une case à cocher par graphique (la première cochée au départ)."""
+        cadre = tk.Frame(self, bg="white")
+        cadre.pack(fill="x", padx=20, pady=(8, 0))
+        tk.Label(cadre, text="Graphiques", width=10, anchor="w", bg="white",
+                 font=("Segoe UI", 10, "bold")).pack(side="left")
+        for i, (texte, graphique) in enumerate(GRAPHIQUES.items()):
+            var = tk.BooleanVar(value=(i == 0))
+            tk.Checkbutton(cadre, text=texte, variable=var, command=self.maj_etoiles, bg="white",
+                           activebackground="white").pack(side="left", padx=(0, 12))
+            self.choix_graphiques[graphique] = var
+
     def creer_grille(self):
-        """Crée les 12 cases cliquables qui affichent les fichiers choisis."""
+        """Grille des 12 cases cliquables qui affichent les fichiers choisis."""
+        tk.Label(self, text="Clic sur une case pour parcourir, clic droit pour vider. "
+                            "Fichiers : CS-IN_KPIs_EMM_<Mois>_<Année>.csv, rangés du plus ancien au plus récent.",
+                 fg=GRIS, bg="white").pack(anchor="w", padx=20, pady=(10, 0))
         grille = tk.Frame(self, bg="white")
-        grille.pack(fill="both", expand=True, padx=14, pady=10)
+        grille.pack(fill="both", expand=True, padx=14, pady=(4, 0))
         self.cases = []
         for i in range(NB_CASES):
             case = tk.Label(grille, bg="#f6f6f6", highlightthickness=1,
@@ -93,35 +120,55 @@ class Selecteur(tk.Tk):
         for r in range(NB_CASES // COLONNES):
             grille.rowconfigure(r, weight=1, uniform="r")
 
-    def creer_options(self):
-        """Crée une ligne de cases à cocher par entrée de OPTIONS (tout est coché au départ)."""
+    def creer_sous_grille(self):
+        """Juste sous la grille : rappel des champs obligatoires (à gauche de) « Tout effacer »."""
         cadre = tk.Frame(self, bg="white")
-        cadre.pack(fill="x", padx=20, pady=(0, 4))
-        for ligne, (titre, argument, valeurs) in enumerate(OPTIONS):
-            tk.Label(cadre, text=titre, width=10, anchor="w", bg="white",
-                     font=("Segoe UI", 10, "bold")).grid(row=ligne, column=0, sticky="w", pady=2)
+        cadre.pack(fill="x", padx=20, pady=(2, 10))
+        ttk.Button(cadre, text="Tout effacer", command=self.tout_effacer).pack(side="right")
+        tk.Label(cadre, text="Les champs marqués d'une * sont obligatoires.", fg=GRIS,
+                 bg="white").pack(side="right", padx=(0, 12))
+
+    def creer_options(self):
+        """Une ligne de cases à cocher par option (tout coché au départ) ; l'* est ajoutée par maj_etoiles."""
+        cadre = tk.Frame(self, bg="white")
+        cadre.pack(fill="x", padx=20)
+        for ligne, (titre, argument, dimension, valeurs) in enumerate(OPTIONS):
+            etiquette = tk.Label(cadre, text=titre, width=12, anchor="w", bg="white",
+                                 font=("Segoe UI", 10, "bold"))
+            etiquette.grid(row=ligne, column=0, sticky="w", pady=2)
+            self.titres_options[dimension] = (etiquette, titre)
             self.coches[argument] = {}
             for col, valeur in enumerate(valeurs, start=1):
                 var = tk.BooleanVar(value=True)
                 tk.Checkbutton(cadre, text=valeur, variable=var, bg="white",
                                activebackground="white").grid(row=ligne, column=col, sticky="w", padx=(0, 12))
                 self.coches[argument][valeur] = var
-        tk.Label(self, text="Coché = une série à part · rien de coché dans une ligne = tous confondus.",
-                 fg="#777", bg="white").pack(anchor="w", padx=20, pady=(0, 6))
+        tk.Label(self, text="Coché = une série à part · rien de coché = tous confondus (sauf champ *).",
+                 fg=GRIS, bg="white").pack(anchor="w", padx=20, pady=(2, 0))
 
     def creer_pied(self):
-        """Crée la zone de message et la rangée de boutons (un graphique par bouton + Tout effacer)."""
-        self.message = tk.Label(self, fg="#777", bg="white", anchor="w", justify="left", wraplength=860)
-        self.message.pack(fill="x", padx=20)
+        """Tout en bas : message d'état à gauche, bouton « Lancer » à droite."""
         pied = tk.Frame(self, bg="white")
-        pied.pack(fill="x", padx=20, pady=(4, 16))
-        for texte, (graphique, utilise) in BOUTONS.items():
-            bouton = ttk.Button(pied, text=texte, command=lambda g=graphique, t=texte: self.lancer(g, t))
-            bouton.pack(side="left", padx=(0, 8))
-            aide = f"{texte} : options {utilise}" if utilise else f"{texte} : requêtes sur la période, inscrits, utilisateurs (sans options)"
-            bouton.bind("<Enter>", lambda e, a=aide: self.message.config(text=a))
-            bouton.bind("<Leave>", lambda e: self.rafraichir())
-        ttk.Button(pied, text="Tout effacer", command=self.tout_effacer).pack(side="right")
+        pied.pack(fill="x", padx=20, pady=(10, 16))
+        ttk.Button(pied, text="Lancer", command=self.lancer).pack(side="right")
+        self.message = tk.Label(pied, fg=GRIS, bg="white", anchor="w", justify="left", wraplength=760)
+        self.message.pack(side="left", fill="x", expand=True)
+
+    # --- étoiles des champs obligatoires ----------------------------------------------
+
+    def graphiques_coches(self):
+        """Noms des graphiques cochés en haut, dans l'ordre d'affichage."""
+        return [g for g, var in self.choix_graphiques.items() if var.get()]
+
+    def dimensions_requises(self):
+        """Dimensions obligatoires pour au moins un des graphiques cochés."""
+        return {dim for g in self.graphiques_coches() for dim in dimensions_obligatoires(g)}
+
+    def maj_etoiles(self):
+        """Ajoute « * » au titre des options exigées par les graphiques cochés, l'enlève sinon."""
+        requises = self.dimensions_requises()
+        for dimension, (etiquette, titre) in self.titres_options.items():
+            etiquette.config(text=f"{titre} *" if dimension in requises else titre)
 
     # --- gestion des fichiers ---------------------------------------------------------
 
@@ -181,27 +228,37 @@ class Selecteur(tk.Tk):
         self.fichiers = [None] * NB_CASES
         self.rafraichir()
 
-    # --- lancement des graphiques ----------------------------------------------------------
+    # --- lancement --------------------------------------------------------------------
 
     def options_cochees(self):
         """Renvoie {argument: [valeurs cochées]} pour chaque ligne d'options."""
         return {arg: [v for v, var in vars_.items() if var.get()] for arg, vars_ in self.coches.items()}
 
-    def lancer(self, graphique, texte):
-        """Ouvre le graphique `graphique` avec les options cochées et les fichiers choisis (dans l'ordre des cases).
+    def lancer(self):
+        """Vérifie les choix puis ouvre chaque graphique coché avec les options et les fichiers des cases.
 
-        Une ligne sans rien de coché est transmise vide : le graphique prend « tous confondus ».
+        Refuse si aucun graphique n'est coché ou si une option marquée * n'a aucune valeur cochée.
         Sans fichier choisi, graphiques.py utilise sa propre liste de fichiers par défaut.
         """
-        commande = [sys.executable, str(SCRIPT), "--graphique", graphique]
-        for arg, valeurs in self.options_cochees().items():
-            commande += [f"--{arg}", *valeurs]
-        chemins = [f for f in self.fichiers if f]
-        commande += ["--", *chemins]
+        graphiques = self.graphiques_coches()
+        if not graphiques:
+            self.message.config(text="Coche au moins un graphique en haut.")
+            return
+        options = self.options_cochees()
+        manquantes = [f"{titre} *" for titre, argument, dimension, _ in OPTIONS
+                      if dimension in self.dimensions_requises() and not options[argument]]
+        if manquantes:
+            self.message.config(text="Coche au moins une valeur pour : " + ", ".join(manquantes))
+            return
 
-        subprocess.Popen(commande)
+        chemins = [f for f in self.fichiers if f]
+        for graphique in graphiques:
+            commande = [sys.executable, str(SCRIPT), "--graphique", graphique]
+            for argument, valeurs in options.items():
+                commande += [f"--{argument}", *valeurs]
+            subprocess.Popen(commande + ["--", *chemins])
         source = f"{len(chemins)} fichier(s)" if chemins else "les fichiers par défaut"
-        self.message.config(text=f"{texte} : ouverture avec {source}…")
+        self.message.config(text=f"{len(graphiques)} graphique(s) lancé(s) avec {source}.")
 
 
 if __name__ == "__main__":

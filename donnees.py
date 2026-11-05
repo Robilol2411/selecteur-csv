@@ -160,6 +160,12 @@ def dimensions_de(indicateur):
     return REGLES[indicateur][1]
 
 
+def obligatoires(indicateur):
+    """Dimensions obligatoires [ ] de l'intitulé (celles qui ne sont pas écrites « (?: {x})? »)."""
+    modele = INDICATEURS[indicateur][1]
+    return [nom for nom in dimensions_de(indicateur) if "(?: {" + nom + "})?" not in modele]
+
+
 def serie(donnees, mois, indicateur, choix):
     """Extrait les valeurs d'un indicateur, une série par combinaison d'options cochées.
 

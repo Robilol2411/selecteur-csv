@@ -4,7 +4,7 @@ Petite appli Tkinter pour choisir jusqu'à 12 CSV « KPIs EMM », cocher des opt
 
 | Fichier | Rôle |
 |---|---|
-| `main.py` | La fenêtre : 12 cases, options Statut / Programme / Messages, un bouton par graphique. |
+| `main.py` | La fenêtre : graphiques à cocher, 12 cases, options Messages / Statut / Programme (* = obligatoire selon les graphiques cochés), bouton Lancer. |
 | `graphiques.py` | Dessine le graphique demandé (barres groupées, une barre par mois) et l'ouvre dans le navigateur. |
 | `donnees.py` | Lecture des CSV, reconnaissance des intitulés, extraction des séries. **Les réglages sont ici.** |
 | `exemples/` | CSV fictifs pour tester. |
